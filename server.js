@@ -1,53 +1,23 @@
-
 const express = require('express');
 const path = require('path');
-const bodyParser = require('body-parser');
-
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-app.use(bodyParser.urlencoded({ extended: true }));
+// Serve static files from the "public" directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-let users = {};
-let messages = [];
-
+// Default route - redirect to login
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-app.post('/register', (req, res) => {
-  const { username, password } = req.body;
-  if (!users[username]) {
-    users[username] = password;
-    res.redirect('/login.html');
-  } else {
-    res.send('Username already exists');
-  }
+// Catch-all for other routes
+app.use((req, res) => {
+  res.status(404).send("Page Not Found");
 });
 
-app.post('/login', (req, res) => {
-  const { username, password } = req.body;
-  if (users[username] === password) {
-    res.redirect(`/chat.html?user=${username}`);
-  } else {
-    res.send('Login failed. Invalid credentials.');
-  }
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
 
-app.get('/messages', (req, res) => {
-  res.json(messages);
-});
-
-app.post('/message', (req, res) => {
-  const { user, text } = req.body;
-  messages.push({ user, text });
-  res.sendStatus(200);
-});
-
-app.post('/logout', (req, res) => {
-  messages = [];
-  res.redirect('/');
-});
-
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
