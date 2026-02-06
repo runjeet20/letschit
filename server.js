@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const app = express();
 
 const messages = []; // In-memory message store
+const users = []; // In-memory user store
 
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -12,13 +13,29 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes
 
+// Register
+app.post('/register', (req, res) => {
+  const { username, password } = req.body;
+  if (username && password) {
+    if (users.find(u => u.username === username)) {
+      res.send('User already exists. <a href="/login.html">Login</a>');
+    } else {
+      users.push({ username, password });
+      res.redirect('/login.html');
+    }
+  } else {
+    res.status(400).send('Invalid data');
+  }
+});
+
 // Login - Redirect to chat with username
 app.post('/login', (req, res) => {
-  const username = req.body.username;
-  if (username) {
+  const { username, password } = req.body;
+  const user = users.find(u => u.username === username && u.password === password);
+  if (user) {
     res.redirect(`/chat.html?user=${encodeURIComponent(username)}`);
   } else {
-    res.redirect('/login.html');
+    res.send('Invalid username or password. <a href="/login.html">Try again</a>');
   }
 });
 
