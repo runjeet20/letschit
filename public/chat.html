@@ -1,0 +1,48 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat</title>
+  <style>
+    #chat { height: 300px; overflow-y: scroll; border: 1px solid #000; margin-bottom: 10px; padding: 5px; }
+  </style>
+</head>
+<body>
+  <h2>Chat Room</h2>
+  <div id="chat"></div>
+  <form id="messageForm">
+    <input name="text" id="text" required>
+    <input type="hidden" id="user">
+    <button type="submit">Send</button>
+  </form>
+  <form action="/logout" method="POST">
+    <button type="submit">Logout</button>
+  </form>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const user = urlParams.get('user');
+    document.getElementById('user').value = user;
+
+    async function fetchMessages() {
+      const res = await fetch('/messages');
+      const msgs = await res.json();
+      const chat = document.getElementById('chat');
+      chat.innerHTML = msgs.map(m => `<p><b>${m.user}</b>: ${m.text}</p>`).join('');
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    setInterval(fetchMessages, 1000);
+
+    document.getElementById('messageForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await fetch('/message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `user=${user}&text=${document.getElementById('text').value}`
+      });
+      document.getElementById('text').value = '';
+    });
+  </script>
+</body>
+</html>
